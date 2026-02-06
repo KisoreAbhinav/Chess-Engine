@@ -1,15 +1,19 @@
 from enum import IntEnum
 
+
 U64 = int
 # arbitrary precision
 # instead of using unsigned long long int in C, we just define it, as python handles it
 
+
 ENGINE_NAME = "Hydra 1.0"
 # Name of the engine - can be anything but i am obsessed with Hydra so...
+
 
 BOARD_SQ_NUM = 120
 # Size of the board, including the actual chess board along with the excess squares to check for invalid positions 
 # Prevents the flow of calculation to cross the board limits
+
 
 class Pieces (IntEnum):
     EMPTY = 0
@@ -43,6 +47,7 @@ class Ranks (IntEnum):
 # defining each rank, with rank 1 being white's home square and 8 being black's.
 # RANK_NONE here is used to calculate the overflow
 
+
 class File (IntEnum):
     FILE_1 = 0
     FILE_2 = 1
@@ -56,6 +61,7 @@ class File (IntEnum):
 #defining each file where file a = file 1 and so on, upto file h = 8
 # FILE_NONE here is used to calculate the overflow
 
+
 class Side(IntEnum):
     WHITE = 0
     BLACK = 1
@@ -63,6 +69,7 @@ class Side(IntEnum):
 # teams definition
 # BOTH will be used to check for total number of pieces, attacks, moves, etc
 # Ex- if after a move, the condition says BOTH, means a piece was captured
+
 
 class Square(IntEnum):
     A1 = 21; B1 = 22; C1 = 23; D1 = 24; E1 = 25; F1 = 26; G1 = 27; H1 = 28
@@ -75,3 +82,56 @@ class Square(IntEnum):
     A8 = 91; B8 = 92; C8 = 93; D8 = 94; E8 = 95; F8 = 96; G8 = 97; H8 = 98
 
     NO_SQ = 99
+# defining the entire board of operation
+# NO_SQ is used for calculations of stuff like out of board, en-passant etc
+
+
+
+class Board:
+    __slots__ = ("pieces", "pawns", "king_sq", "side", "en_passant", "fifty_move", "ply", "his_ply", "pos_key", "pce_num", "big_pce", "maj_pce", "min_pce")
+    def __init__(self):
+        self.pieces = [Pieces.EMPTY] * BOARD_SQ_NUM 
+        #creates a list of empty squares in the size of the board
+
+        self.pawns = [0, 0, 0]
+        # bit board for all the pawns, white, black and both
+        
+        self.king_sq = [Square.NO_SQ, Square.NO_SQ]
+        # initializes squares for the white and black king
+
+        self.side = Side.WHITE
+        # sets the first moving team/player as WHITE, as that is the standard rule, can be overridden by ParseFEN
+
+        self.en_passant = Square.NO_SQ
+        # sets the possibility of en-passant to 0, basically invalid
+
+        self.fifty_move = 0
+        # counter for a 50 move rule, if no pawns have been pushed and no pieces have been captured
+    
+        self.ply = 0
+        # sets the current search depth to 0
+
+        self.his_ply = 0
+        # total half moves played so far, used for tracking actual game progress
+
+        self.pos_key = 0
+        # assigns each position obtained on a chess board to a Zobrist Hash key
+        # set as 0 as no pieces have been setup yet
+        # used for checking 3 fold repetitions
+
+        self.pce_num = [0] * 13
+        # stores the number of pieces on the board
+
+        self.big_pce = [0, 0, 0]
+        # stores the number of pieces other than pawns on the board for white, black and both
+
+        self.maj_pce = [0, 0, 0]
+        # stores the number of major pieces (rook and queens) on the board for white, black and both
+        # used for material evaluation
+        
+        self.min_pce = [0, 0, 0]
+        # stores the number of minor pieces (bishops, knights) on the board for white, black and both
+        # used for positional calculation
+
+# Class Board stores the board's attributes, lets say, its the opening, what pieces have moved, in what order, what pieces have been traded, etc etc 
+# Stores basically a screenshot of a board at a current position
