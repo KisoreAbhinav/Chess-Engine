@@ -1,4 +1,4 @@
-# Chess-Engine
+# Hydra - The Chess-Engine
 Chess Engine With Variable Playing Mechanisms
 
 ## Resources
