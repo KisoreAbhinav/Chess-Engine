@@ -1,9 +1,14 @@
 from enum import IntEnum
 
-
 U64 = int
 # arbitrary precision
 # instead of using unsigned long long int in C, we just define it, as python handles it
+
+
+MAX_GAME_MOVES = 2048
+# maximum number of moves (mostly engines use numbers between 1024 to 4096)
+# these are half moves
+# used to keep a track of the game, and use undos 
 
 
 ENGINE_NAME = "Hydra 1.0"
@@ -86,9 +91,38 @@ class Square(IntEnum):
 # NO_SQ is used for calculations of stuff like out of board, en-passant etc
 
 
+class Castling(IntEnum):
+    WKSC = 1
+    WQSC = 2
+    BKSC = 4
+    BQSC = 8
+# used to bitmask and store the possibility of castling of both sides in a single integer
+# these are in powers of 2, represented by a 4 bit number
+# 1 = 0001, 2 = 0010, 4 = 0100, 8 = 1000
+# so if the white king can castle king side and the black king can castle queen side, the options are WKSC | BKQS so 0001 | 1000 = 1001
+# hence all the possibilities are stored in a single 4 bit number
 
+
+
+class Undo:
+    __slots__ = ("move", "castle_perm", "en_passant", "fifty_move", "pos_key")
+    def __init__(self, move, castle_perm, en_passant, fifty_move, pos_key):
+        self.move = move
+        self.castle_perm = castle_perm
+        self.en_passant = en_passant
+        self.fifty_move = fifty_move
+        self.pos_key = pos_key
+    
+
+#--------------------------------------------------------------------------------------------------
+# Board Constants/Conditions
+#--------------------------------------------------------------------------------------------------
 class Board:
-    __slots__ = ("pieces", "pawns", "king_sq", "side", "en_passant", "fifty_move", "ply", "his_ply", "pos_key", "pce_num", "big_pce", "maj_pce", "min_pce")
+    __slots__ = ("pieces", "pawns", "king_sq", "side", 
+                 "en_passant", "fifty_move", "ply", 
+                 "his_ply", "pos_key", "pce_num", "big_pce", 
+                 "maj_pce", "min_pce", "castle_perm", "history")
+
     def __init__(self):
         self.pieces = [Pieces.EMPTY] * BOARD_SQ_NUM 
         #creates a list of empty squares in the size of the board
@@ -132,6 +166,15 @@ class Board:
         self.min_pce = [0, 0, 0]
         # stores the number of minor pieces (bishops, knights) on the board for white, black and both
         # used for positional calculation
+
+        self.castle_perm = 0
+        # stores the castle permissions for the king
+        # since the board hasnt yet been initialized, there are no pieces that can castle
+        # it stores '0000' -> no sides can castle
+        # discussed in detail with the Class Castling   
+
+        self.history = [Undo() for _ in range (MAX_GAME_MOVES)]
+        
 
 # Class Board stores the board's attributes, lets say, its the opening, what pieces have moved, in what order, what pieces have been traded, etc etc 
 # Stores basically a screenshot of a board at a current position
