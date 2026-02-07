@@ -112,6 +112,11 @@ class Undo:
         self.en_passant = en_passant
         self.fifty_move = fifty_move
         self.pos_key = pos_key
+# move -> stores the move just before the current ongoing one
+# castle_perm -> stores the castle permission status for both white and black kings on the move right before the ongoing one
+# en_passant -> stores the status of the en_passant squares that are possible due to the previous move
+# fifty_move -> stores the counter of the 50 move rule; reset by every pawn push or piece captures
+# pos_key -> the Zobrist hash key that of the attributes of the board of the previous move
     
 
 #--------------------------------------------------------------------------------------------------
@@ -174,6 +179,7 @@ class Board:
         # discussed in detail with the Class Castling   
 
         self.history = [Undo() for _ in range (MAX_GAME_MOVES)]
+        # stores all the unique board positions and attributes of each move upto the maximum game moves, for this engine, set to 2048
         
 
 # Class Board stores the board's attributes, lets say, its the opening, what pieces have moved, in what order, what pieces have been traded, etc etc 
